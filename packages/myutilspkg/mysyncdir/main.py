@@ -1,24 +1,24 @@
 # -*- coding: utf-8 -*-
 """
-mysyncdir.main モジュール
+mysyncdir.main module
 
-ディレクトリ同期を行う簡易ユーティリティを提供します。
+Simple utility for directory synchronization.
 
-主な機能:
+Main features:
 - `sync_dir(src, dst, exclude_hidden=False, verbose=False)`:
-    - `dirsync.sync` を用いて差分（増分）同期を実行します。
-    - 同期元に存在しないファイルは同期先から削除されます（`purge=True`）。
-    - 同期先が存在しない場合は自動で作成されます（`create=True`）。
-    - `exclude_hidden=True` の場合、隠しファイル・隠しフォルダを除外するため、一時ディレクトリへコピーしてから同期を実行します。
-    - `verbose` 引数は内部の `dirsync.sync` に渡され、詳細出力の有無を制御します。
+    - Performs incremental synchronization using `dirsync.sync`.
+    - Removes files in the target that are not present in the source (`purge=True`).
+    - Creates the target directory if it does not exist (`create=True`).
+    - If `exclude_hidden=True`, copies the source to a temporary directory excluding hidden files and directories, then synchronizes from that copy.
+    - The `verbose` argument is passed to `dirsync.sync` to control detailed output.
 
-内部ヘルパー:
-- `_is_hidden(path: Path)` : UNIX/Windows の判定方法に基づき隠しファイル/フォルダかどうかを判定します。
-- `_ignore_hidden(dirpath, names)` : `shutil.copytree` の ignore コールバックとして隠し項目を除外します。
+Helpers:
+- `_is_hidden(path: Path)`: Determine whether a file or directory is hidden using UNIX/Windows rules.
+- `_ignore_hidden(dirpath, names)`: `shutil.copytree` ignore callback that excludes hidden items.
 
-注意事項:
-- Windows の隠し属性判定に `ctypes` を使用しています。
-- 直接実行すると `myutilspkg.mylogger.init_logger` を呼んでログを初期化し、ホーム配下の `mysyncdirdst` に同期を実行します。
+Notes:
+- Uses `ctypes` to check the Windows hidden attribute.
+- When run directly, initializes logging via `myutilspkg.mylogger.init_logger` and synchronizes to `mysyncdirdst` under the user's home directory.
 """
 
 import logging
@@ -34,10 +34,10 @@ logger.setLevel(logging.DEBUG)
 
 def _is_hidden(path: Path) -> bool:
     """
-    ファイル/フォルダが隠しファイルかどうかを判定する。
-    
-    UNIX系: ファイル名が . で始まるかで判定
-    Windows: ファイル名が . で始まる、または隠し属性を持つかで判定
+    Determine whether the given file or directory is hidden.
+
+    UNIX: Hidden if the name starts with a dot.
+    Windows: Hidden if the name starts with a dot or the hidden file attribute is set.
     """
     if path.name.startswith('.'):
         return True
@@ -54,7 +54,7 @@ def _is_hidden(path: Path) -> bool:
 
 def _ignore_hidden(dirpath, names):
     """
-    shutil.copytree の ignore コールバック。隠しファイル/フォルダをスキップする。
+    `shutil.copytree` ignore callback that skips hidden files/directories.
     """
     ignore = set()
     base = Path(dirpath)
@@ -71,20 +71,20 @@ def _ignore_hidden(dirpath, names):
 
 def sync_dir(src: Path, dst: Path, exclude_hidden: bool = False, verbose: bool = True):
     """
-    ディレクトリ同期を実行する関数。
-    
-    同期元フォルダから同期先フォルダへの差分同期を行う。
-    同期元に存在しないファイルは同期先から削除され、
-    同期先フォルダが存在しない場合は自動作成される。
-    
+    Perform directory synchronization.
+
+    Synchronize differences from the source folder to the target folder.
+    Files missing from the source will be removed from the target. The target
+    directory will be created if it does not exist.
+
     Args:
-        src (Path): 同期元フォルダのパス
-        dst (Path): 同期先フォルダのパス
-        exclude_hidden (bool): True の場合、隠しファイル・隠しフォルダを除外する。デフォルト: False
-        verbose (bool): `dirsync.sync` に渡す詳細出力フラグ。True にすると処理詳細が出力されます。デフォルト: False
-        
+        src (Path): Path to the source directory.
+        dst (Path): Path to the destination directory.
+        exclude_hidden (bool): If True, exclude hidden files and directories. Default: False.
+        verbose (bool): Passed to `dirsync.sync` to control detailed output. Default: False.
+
     Raises:
-        FileNotFoundError: 同期元フォルダが存在しない場合
+        FileNotFoundError: If the source directory does not exist.
     """
     src = src.resolve()
     dst = dst.resolve()
@@ -96,7 +96,7 @@ def sync_dir(src: Path, dst: Path, exclude_hidden: bool = False, verbose: bool =
 
     logger.debug(f'Starting synchronization: {src} to {dst}')
     if exclude_hidden:
-        # 隠しファイルを除外するため、一時ディレクトリへコピーしてから同期する
+        # To exclude hidden items, copy the source to a temporary directory and sync from that copy
         with tempfile.TemporaryDirectory() as tmpdir:
             temp_src = Path(tmpdir) / src.name
             logger.debug(f'Copying source to temporary dir (excluding hidden items): {temp_src}')
@@ -124,10 +124,10 @@ def sync_dir(src: Path, dst: Path, exclude_hidden: bool = False, verbose: bool =
 
 if __name__ == "__main__":
     """
-    メインエントリーポイント。
-    
-    このスクリプトが直接実行された場合、ログシステムを初期化して
-    指定されたディレクトリの同期を実行する。
+    Main entry point.
+
+    When executed directly, initialize the logging system and run synchronization
+    for the configured directory.
     """
     # mylogger is only needed for direct execution; otherwise it interferes
     from myutilspkg import mylogger

@@ -1,24 +1,24 @@
 # -*- coding: utf-8 -*-
 """
-mysyncdir.main モジュール
+mysyncdir.main module
 
-ディレクトリ同期を行う簡易ユーティリティを提供します。
+Simple utility for directory synchronization.
 
-主な機能:
+Main features:
 - `sync_dir(src, dst, exclude_hidden=False, verbose=False)`:
-    - `dirsync.sync` を用いて差分（増分）同期を実行します。
-    - 同期元に存在しないファイルは同期先から削除されます（`purge=True`）。
-    - 同期先が存在しない場合は自動で作成されます（`create=True`）。
-    - `exclude_hidden=True` の場合、隠しファイル・隠しフォルダを除外するため、一時ディレクトリへコピーしてから同期を実行します。
-    - `verbose` 引数は内部の `dirsync.sync` に渡され、詳細出力の有無を制御します。
+    - Performs incremental synchronization using `dirsync.sync`.
+    - Removes files in the target that are not present in the source (`purge=True`).
+    - Creates the target directory if it does not exist (`create=True`).
+    - If `exclude_hidden=True`, copies the source to a temporary directory excluding hidden files and directories, then synchronizes from that copy.
+    - The `verbose` argument is passed to `dirsync.sync` to control detailed output.
 
-内部ヘルパー:
-- `_is_hidden(path: Path)` : UNIX/Windows の判定方法に基づき隠しファイル/フォルダかどうかを判定します。
-- `_ignore_hidden(dirpath, names)` : `shutil.copytree` の ignore コールバックとして隠し項目を除外します。
+Helpers:
+- `_is_hidden(path: Path)`: Determine whether a file or directory is hidden using UNIX/Windows rules.
+- `_ignore_hidden(dirpath, names)`: `shutil.copytree` ignore callback that excludes hidden items.
 
-注意事項:
-- Windows の隠し属性判定に `ctypes` を使用しています。
-- 直接実行すると `myutilspkg.mylogger.init_logger` を呼んでログを初期化し、ホーム配下の `mysyncdirdst` に同期を実行します。
+Notes:
+- Uses `ctypes` to check the Windows hidden attribute.
+- When run directly, initializes logging via `myutilspkg.mylogger.init_logger` and synchronizes to `mysyncdirdst` under the user's home directory.
 """
 from .main import sync_dir
 __all__ = ['sync_dir']

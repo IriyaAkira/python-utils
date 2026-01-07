@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-mylogger.main モジュール
+mylogger.main module
 
-アプリケーションやモジュール単位でログ初期化を簡便に行うための補助関数を提供します。
+Utilities to simplify initializing logging for applications or modules.
 
-提供関数:
-- `init_logger(module_name=None, dir_path=None, backup_count: int = 5)` : ルートロガーにファイルハンドラ（ローテート）とコンソールハンドラを追加して初期化し、`logging.Logger` を返します。`backup_count` でローテート時に保持するバックアップ世代数を指定できます（デフォルト: 5）。ログは UTF-8 エンコーディングで出力されます。
+Provides:
+- `init_logger(module_name=None, dir_path=None, backup_count: int = 5)`: Initialize the root logger with a rotating file handler and a console handler and return a `logging.Logger`. Use `backup_count` to control how many rotated backups are kept (default: 5). Logs are written using UTF-8 encoding.
 
-注意事項:
-- 同一プロセス内で `init_logger` を複数回呼ぶとハンドラが重複してログが二重出力されるため、再初期化には注意してください。
+Notes:
+- Calling `init_logger` multiple times in the same process will add duplicate handlers and can produce duplicate log output.
 """
 from .main import init_logger
 __all__ = ['init_logger']
