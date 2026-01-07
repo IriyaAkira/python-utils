@@ -2,18 +2,15 @@
 """
 mylogger.main モジュール
 
-このモジュールはアプリケーションやモジュール単位でのログ初期化を簡便に行うための補助関数を提供します。
+アプリケーションやモジュール単位でログ初期化を簡便に行うための補助関数を提供します。
 
 提供関数:
-- `get_log_dir(dir_path=None)` : ログ保存用ディレクトリの絶対パスを返します（未指定時は本モジュール配置ディレクトリに `log` サブディレクトリを作成）。
-- `get_log_file(file_name=None)` : ログファイル名を決定します（未指定時は呼び出し元モジュール名または実行ファイル名に基づく `<name>.log` を返します）。
-- `init_logger(module_name=None, dir_path=None)` : ファイルハンドラ（ローテート）とコンソールハンドラを設定して `logging` を初期化し、`Logger` を返します。
+- `get_log_dir(dir_path=None)` : ログ保存用ディレクトリの絶対パスを返します。未指定時は本モジュール配置ディレクトリ内に `log` サブディレクトリを作成します。
+- `get_log_file(file_name=None)` : ログファイル名を決定します。未指定時はモジュール名または実行ファイル名に基づく `<name>.log` を返します。
+- `init_logger(module_name=None, dir_path=None, backup_count: int = 5)` : ルートロガーにファイルハンドラ（ローテート）とコンソールハンドラを追加して初期化し、`logging.Logger` を返します。`backup_count` でローテート時に保持するバックアップ世代数を指定できます（デフォルト: 5）。ログは UTF-8 エンコーディングで出力されます。
 
 注意事項:
-- 同一プロセス内で `init_logger` を複数回呼ぶとハンドラが重複してログが重複出力されるため再初期化に注意してください。
-- ログファイルは UTF-8 エンコーディングでローテーションが設定されています。
-
-詳細な使用例はソースコード本体のコメントを参照してください。
+- 同一プロセス内で `init_logger` を複数回呼ぶとハンドラが重複してログが二重出力されるため、再初期化には注意してください。
 """
 from pathlib import Path
 import logging
@@ -75,7 +72,7 @@ def get_log_file(file_name=None):
 
     return f"{module_name}.log"
 
-def init_logger(module_name=None, dir_path=None): 
+def init_logger(module_name=None, dir_path=None, backup_count: int = 5): 
     """Initialize logging and return a configured logger.
 
     Parameters
@@ -87,6 +84,9 @@ def init_logger(module_name=None, dir_path=None):
     dir_path : str | None
         Base directory where the `log` subdirectory will be created. If None,
         the directory containing this module is used.
+    backup_count : int
+        Number of rotated backup files to keep (passed to the file handler).
+        Defaults to 5.
 
     Returns
     -------
@@ -108,7 +108,7 @@ def init_logger(module_name=None, dir_path=None):
     fh = logging.handlers.RotatingFileHandler(
         log_file_path,
         maxBytes=1024 * 1024,
-        backupCount=1,
+        backupCount=backup_count,
         encoding="utf-8",
     )
     fh.setLevel(logging.DEBUG)
